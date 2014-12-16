@@ -29,9 +29,25 @@ $this->params['breadcrumbs'][] = $this->title;
 <?= "    <?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel]); ?>
 <?php endif; ?>
 
-    <p>
-        <?= "<?= " ?>Html::a(<?= $generator->generateString('Create {modelClass}', ['modelClass' => Inflector::camel2words(StringHelper::basename($generator->modelClass))]) ?>, ['create'], ['class' => 'btn btn-success']) ?>
+    <p class="actions">
+        <?= "<?= " ?>Html::a('<span class="glyphicon glyphicon-plus"></span> ' . <?= $generator->generateString('Create ' . Inflector::camel2words(StringHelper::basename($generator->modelClass))) ?>, ['create'], ['class' => 'btn btn-success']) ?>
+        <?= "<?= " ?>Html::a('<span class="glyphicon glyphicon-search"></span> ' . <?= $generator->generateString('Search') ?>, ['#'], ['class' => 'btn btn-primary', 'data-toggle' => 'modal', 'data-target' => '#searchModal']) ?>
     </p>
+    
+<?php if(!empty($generator->searchModelClass)): ?>    
+    <?="<?php\n"?>
+        yii\bootstrap\Modal::begin([
+            'header' => Yii::t('app', 'Search'),
+            'id' => 'searchModal'
+        ]);
+        
+        echo $this->render('_search', [
+            'model' => $searchModel
+        ]);
+        
+        yii\bootstrap\Modal::end();     
+    ?>    
+<?php endif; ?>
 
 <?php if ($generator->indexWidgetType === 'grid'): ?>
     <?= "<?= " ?>GridView::widget([
@@ -53,9 +69,9 @@ if (($tableSchema = $generator->getTableSchema()) === false) {
     foreach ($tableSchema->columns as $column) {
         $format = $generator->generateColumnFormat($column);
         if (++$count < 6) {
-            echo "            '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+            echo "            [\n\t\t\t\t'attribute' => '" . $column->name . "',\n\t\t\t\t'value' => function(\$item) {\n\t\t\t\t\treturn \$item->" . $column->name . ";\n\t\t\t\t}," . ($format === 'text' ? "" : "\n\t\t\t\t'format' => '" . $format . "'") . "\n\t\t\t],\n";
         } else {
-            echo "            // '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+            echo "            /*[\n\t\t\t\t'attribute' => '" . $column->name . "',\n\t\t\t\t'value' => function(\$item) {\n\t\t\t\t\treturn \$item->" . $column->name . ";\n\t\t\t\t}," . ($format === 'text' ? "" : "\n\t\t\t\t'format' => '" . $format . "'") . "\n\t\t\t],*/\n";
         }
     }
 }

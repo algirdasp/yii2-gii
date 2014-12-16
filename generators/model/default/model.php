@@ -81,4 +81,33 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
         <?= $relation[0] . "\n" ?>
     }
 <?php endforeach; ?>
+
+    /**
+     * @return array
+     * Returns an array of id => value pairs for generating a dropdown for this model.
+     * Can provide an active query as an optional parameter
+     */
+    public static function getDropdown($activequery = false) {
+        $arr = [];
+        foreach ($activequery !== false ? $activequery : static::find()->all() as $item) {
+            $arr[$item->id] = static::byIdAsString($item->id);
+        }
+        
+        return $arr;
+    }    
+
+    /**
+     * @return string
+     * Returns a string representation of this model, by given id
+     */
+    public static function byIdAsString($id) {
+        return static::findOne($id)->id;
+    }
+    
+    /**
+     * @return String representation of an active record
+     */
+    public function asString() {
+        return static::byIdAsString($this->id);
+    }    
 }

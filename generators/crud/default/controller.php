@@ -56,6 +56,33 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
             ],
         ];
     }
+    
+    // Allows to render all views in this controller in a layout that is iframe-in-modal friendly
+    public function beforeAction($action) {
+        if (parent::beforeAction($action)) {
+            if (isset($_GET['iframe'])) {
+                if ($_GET['iframe'] == '_reset')
+                    unset(Yii::$app->session[Yii::$app->controller->id . '_iframe']);
+                else
+                    Yii::$app->session[Yii::$app->controller->id . '_iframe'] = $_GET['iframe'];
+            }
+            
+            if (isset(Yii::$app->session[Yii::$app->controller->id . '_iframe'])) {
+                $this->layout = 'iframe';
+            }
+                
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    // Returns a JSON list of items for creating a dropdown
+    public function actionGetlist() {
+        header('Content-Type: application/json');
+        echo json_encode(<?= $modelClass ?>::getDropdown(), JSON_PRETTY_PRINT);
+        exit;
+    }        
 
     /**
      * Lists all <?= $modelClass ?> models.
@@ -103,13 +130,14 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
     {
         $model = new <?= $modelClass ?>();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', <?= $urlParams ?>]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+        if ($model->load(Yii::$app->request->post())) {
+            if ($model->save())
+                return $this->redirect(['view', <?= $urlParams ?>]);
         }
+        
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -122,13 +150,14 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
     {
         $model = $this->findModel(<?= $actionParams ?>);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', <?= $urlParams ?>]);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+        if ($model->load(Yii::$app->request->post())) {
+            if ($model->save())
+                return $this->redirect(['view', <?= $urlParams ?>]);
         }
+        
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
 
     /**
